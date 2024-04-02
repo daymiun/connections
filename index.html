@@ -122,7 +122,7 @@ body {
 const groups = {
   'Where All My Ideas Go': ['Graveyard', 'Bench', 'Appendix', 'Skip'],
   'Things Creative Directors Hate': ['Reading', 'Sobriety', 'You', 'Listening'],
-  'Words in Every Brief': ['Gen Z', '$0', 'Culture', 'Buzz-worthy'],
+  'Words in Every Brief': ['Gen Z', '$0', 'Culture', 'Social'],
   'Stuff Your Account Person Says': ['Caveat', 'No', 'Testing', 'Next Steps']
 };
 
@@ -131,28 +131,127 @@ let selected = [];
 let correctGroups = 0;
 let isAnimating = false;
 
-// Shuffle, checkSelection, handleClick, animateAndRemoveWords, rearrangeGrid functions
-// (include all the JavaScript functionality here as previously provided)
+// Shuffle function using the Fisher-Yates (Knuth) Shuffle algorithm
+function shuffle(array) {
+  let currentIndex = array.length, temporaryValue, randomIndex;
+  while (0 !== currentIndex) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+  return array;
+}
 
-// Initialize the game board with shuffled words
+// Function to animate and remove words after a correct guess
+function animateAndRemoveWords(groupName) {
+  isAnimating = true;
+
+  // Find the position for the group box
+  let rect = document.getElementById(selected[0]).getBoundingClientRect();
+
+  // Create the group box at the group's current location
+  const groupBox = document.createElement('div');
+  groupBox.textContent = groupName;
+  groupBox.className = 'group-box';
+  groupBox.style.top = rect.top + 'px';
+  document.body.prepend(groupBox);
+
+  // Animate the words to the group box
+  selected.forEach(word => {
+    const element = document.getElementById(word);
+    element.classList.add('floating');
+  });
+
+  setTimeout(() => {
+    selected.forEach(word => {
+      const element = document.getElementById(word);
+      element.style.display = 'none'; // Hide the element
+    });
+
+    groupBox.style.top = '10px';
+    selected = [];
+    isAnimating = false;
+
+  }, 1000); // The duration of the animation
+}
+
+// Function to check if the selected group of words is correct
+function checkSelection() {
+  for (const groupName in groups) {
+    if (selected.length === 4 && groups[groupName].every(element => selected.includes(element))) {
+      correctGroups++;
+      animateAndRemoveWords(groupName);
+      if (correctGroups === Object.keys(groups).length) {
+        setTimeout(() => alert('Congratulations! You found all groups!'), 1100);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+// Handle click events on grid items
+function handleClick(word) {
+  if (isAnimating) return; // Exit if an animation is in progress
+
+  const index = selected.indexOf(word);
+  const element = document.getElementById(word);
+
+  // Toggle the selection of a word
+  if (index > -1) {
+    selected.splice(index, 1);
+    element.classList.remove('highlighted');
+  } else {
+    if (selected.length < 4) {
+      selected.push(word);
+      element.classList.add('highlighted');
+    }
+  }
+
+  // Check if four words have been selected
+  if (selected.length === 4) {
+    const correct = checkSelection();
+    if (!correct) {
+      tries--;
+      document.getElementById('tries').textContent = tries;
+      selected.forEach(selectedWord => {
+        const selectedElement = document.getElementById(selectedWord);
+        selectedElement.classList.remove('highlighted');
+        selectedElement.classList.add('incorrect');
+        setTimeout(() => selectedElement.classList.remove('incorrect'), 500);
+      });
+      if (tries === 0) {
+        alert('Game Over');
+        document.querySelectorAll('.grid-item').forEach(item => {
+          item.classList.add('disabled');
+        });
+      }
+      selected = [];
+    }
+  }
+}
+
+// Create the game board with shuffled words
 function createBoard() {
   const board = document.getElementById('game-board');
   const allWords = shuffle(Object.values(groups).flat());
+  board.innerHTML = ''; // Clear the previous board
   allWords.forEach(word => {
     const item = document.createElement('div');
     item.textContent = word;
     item.id = word;
     item.className = 'grid-item';
-    item.onclick = function() {
-      if (!isAnimating) {
-        handleClick(word);
-      }
-    };
+    item.onclick = function() { handleClick(word); };
     board.appendChild(item);
   });
 }
 
+// Initialize the game board
 createBoard();
+</script>
+
 </script>
 </body>
 </html>
