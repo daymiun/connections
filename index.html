@@ -6,17 +6,14 @@
 <title>Connections Game</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* Modern styling */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
-
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #1A1A1A; /* Dark background for modern look */
+  background-color: #1A1A1A;
   color: #FFFFFF;
   margin: 0;
   padding: 20px;
 }
-
 .grid-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -25,7 +22,6 @@ body {
   margin: 40px auto;
   padding: 10px;
 }
-
 .grid-item {
   border: none;
   padding: 20px;
@@ -40,27 +36,22 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
 .grid-item:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
-
 .highlighted {
   background-color: #FF3CAC;
 }
-
 .disabled {
   background-color: #3A3A3A;
   color: #777777;
   pointer-events: none;
 }
-
 .incorrect {
   animation: shake 0.5s;
   background-color: #E84545;
 }
-
 @keyframes shake {
   0% { transform: translateX(0px); }
   25% { transform: translateX(-5px); }
@@ -68,17 +59,14 @@ body {
   75% { transform: translateX(-5px); }
   100% { transform: translateX(5px); }
 }
-
 @keyframes floatUp {
   0% { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(-100px); opacity: 0; }
 }
-
 .floating {
   position: absolute;
   animation: floatUp 1s forwards;
 }
-
 .group-box {
   border: none;
   padding: 15px;
@@ -94,17 +82,45 @@ body {
   margin: 10px;
   transition: transform 0.3s, box-shadow 0.3s;
 }
-
 .group-box:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
-
 #status {
   max-width: 600px;
   margin: 20px auto;
   text-align: center;
   font-weight: 700;
+}
+
+/* Responsive adjustments */
+@media only screen and (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    max-width: 90%;
+  }
+  .grid-item {
+    padding: 15px;
+    font-size: 14px;
+  }
+  .group-box {
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 18px;
+  }
+}
+@media only screen and (max-width: 480px) {
+  .grid-container {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  body {
+    padding: 10px;
+  }
+  .group-box {
+    width: 90%;
+    margin: 10px auto;
+  }
 }
 </style>
 </head>
@@ -118,11 +134,10 @@ body {
 </div>
 
 <script>
-// Updated groups based on the new wordings provided
 const groups = {
   'Where All My Ideas Go': ['Graveyard', 'Bench', 'Appendix', 'Skip'],
   'Things Creative Directors Hate': ['Reading', 'Sobriety', 'You', 'Listening'],
-  'Words in Every Brief': ['Gen Z', '$0', 'Culture', 'Social'],
+  'Words in Every Brief': ['Gen Z', '$0', 'Culture', 'Buzz-worthy'],
   'Stuff Your Account Person Says': ['Caveat', 'No', 'Testing', 'Next Steps']
 };
 
@@ -131,7 +146,6 @@ let selected = [];
 let correctGroups = 0;
 let isAnimating = false;
 
-// Shuffle function using the Fisher-Yates (Knuth) Shuffle algorithm
 function shuffle(array) {
   let currentIndex = array.length, temporaryValue, randomIndex;
   while (0 !== currentIndex) {
@@ -144,40 +158,31 @@ function shuffle(array) {
   return array;
 }
 
-// Function to animate and remove words after a correct guess
 function animateAndRemoveWords(groupName) {
   isAnimating = true;
-
-  // Find the position for the group box
+  let groupWords = selected.join(', ');
+  let displayText = `${groupName}: ${groupWords}`;
   let rect = document.getElementById(selected[0]).getBoundingClientRect();
-
-  // Create the group box at the group's current location
   const groupBox = document.createElement('div');
-  groupBox.textContent = groupName;
+  groupBox.textContent = displayText;
   groupBox.className = 'group-box';
   groupBox.style.top = rect.top + 'px';
   document.body.prepend(groupBox);
-
-  // Animate the words to the group box
   selected.forEach(word => {
     const element = document.getElementById(word);
     element.classList.add('floating');
   });
-
   setTimeout(() => {
     selected.forEach(word => {
       const element = document.getElementById(word);
-      element.style.display = 'none'; // Hide the element
+      element.style.display = 'none';
     });
-
     groupBox.style.top = '10px';
     selected = [];
     isAnimating = false;
-
-  }, 1000); // The duration of the animation
+  }, 1000);
 }
 
-// Function to check if the selected group of words is correct
 function checkSelection() {
   for (const groupName in groups) {
     if (selected.length === 4 && groups[groupName].every(element => selected.includes(element))) {
@@ -192,14 +197,10 @@ function checkSelection() {
   return false;
 }
 
-// Handle click events on grid items
 function handleClick(word) {
-  if (isAnimating) return; // Exit if an animation is in progress
-
+  if (isAnimating) return;
   const index = selected.indexOf(word);
   const element = document.getElementById(word);
-
-  // Toggle the selection of a word
   if (index > -1) {
     selected.splice(index, 1);
     element.classList.remove('highlighted');
@@ -209,8 +210,6 @@ function handleClick(word) {
       element.classList.add('highlighted');
     }
   }
-
-  // Check if four words have been selected
   if (selected.length === 4) {
     const correct = checkSelection();
     if (!correct) {
@@ -233,11 +232,10 @@ function handleClick(word) {
   }
 }
 
-// Create the game board with shuffled words
 function createBoard() {
   const board = document.getElementById('game-board');
   const allWords = shuffle(Object.values(groups).flat());
-  board.innerHTML = ''; // Clear the previous board
+  board.innerHTML = '';
   allWords.forEach(word => {
     const item = document.createElement('div');
     item.textContent = word;
@@ -248,10 +246,7 @@ function createBoard() {
   });
 }
 
-// Initialize the game board
 createBoard();
-</script>
-
 </script>
 </body>
 </html>
